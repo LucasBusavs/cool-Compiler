@@ -243,6 +243,6 @@ Após a conclusão deste documento:
 - especificação de Comentários: concluída;
 - plano de testes: concluído;
 - matriz de requisitos: concluída;
-- arquitetura de implementação: pendente.
+- arquitetura de implementação: concluída.
 
-O próximo documento a ser finalizado é `ARCHITECTURE.md`.
+O próximo marco será a implementação do analisador léxico em `PA2/cool.flex`.
