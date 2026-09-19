@@ -18,3 +18,10 @@ assets/x86_64.u
 # SO
 .DS_Store
 Thumbs.db
+
+# PA2 - arquivos gerados
+PA2/lexer
+PA2/cool-lex.cc
+PA2/*.o
+PA2/*.d
+PA2/core
