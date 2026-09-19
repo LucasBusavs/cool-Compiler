@@ -1,0 +1,19 @@
+services:
+  cool:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: cool-dev:16.04
+
+    volumes:
+      - .:/workspace
+      - cool-runtime:/var/tmp/cool
+
+    working_dir: /workspace
+
+    stdin_open: true
+    tty: true
+
+volumes:
+  cool-runtime:

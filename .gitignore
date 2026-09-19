@@ -1,0 +1,20 @@
+# Material oficial da disciplina
+assets/x86_64.u
+*.u
+*.tar.gz
+
+# Build
+*.o
+*.out
+
+# Temporários
+*.tmp
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# SO
+.DS_Store
+Thumbs.db
