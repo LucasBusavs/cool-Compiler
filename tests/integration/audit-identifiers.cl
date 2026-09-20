@@ -1,0 +1,7 @@
+Object Int Bool String SELF_TYPE self
+true false
+tRuE fAlSe
+True FALSE
+TRUE False
+class CLASS Class cLaSs
+1234567890123456789012345678901234567890

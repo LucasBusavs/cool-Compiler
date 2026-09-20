@@ -123,3 +123,208 @@ Instructions
 Write-up for PA2
 ----------------
 
+Implementation overview
+-----------------------
+
+The lexical analyzer was implemented in cool.flex using Flex and follows
+the lexical specification of the COOL Reference Manual and the PA2
+requirements.
+
+The scanner recognizes:
+
+- COOL keywords, case-insensitively;
+- boolean constants, respecting the special capitalization rule for
+  true and false;
+- TYPEID and OBJECTID identifiers;
+- integer constants;
+- multi-character operators (<-, <= and =>);
+- single-character operators and punctuation;
+- line comments;
+- nested block comments;
+- string constants;
+- lexical errors and the required recovery behavior.
+
+Semantic values are stored using the tables provided by the COOL
+infrastructure:
+
+- INT_CONST values are inserted in inttable;
+- TYPEID and OBJECTID values are inserted in idtable;
+- STR_CONST values are inserted in stringtable;
+- BOOL_CONST values are stored in cool_yylval.boolean;
+- lexical error descriptions are returned through
+  cool_yylval.error_msg.
+
+The scanner itself does not print lexical errors. Errors are returned as
+ERROR tokens.
+
+
+Comments
+--------
+
+Line comments beginning with -- are ignored until a newline or EOF.
+
+Block comments use an exclusive Flex state named COMMENT. A nesting
+counter is maintained so that nested comments are accepted. The scanner
+returns to INITIAL only when the nesting depth becomes zero.
+
+Newlines inside block comments update curr_lineno.
+
+EOF inside an open block comment returns:
+
+    EOF in comment
+
+A block-comment terminator appearing outside a block comment returns:
+
+    Unmatched *)
+
+
+Strings
+-------
+
+String constants are handled using an exclusive STRING state.
+
+Characters are accumulated in the supplied string buffer and the final
+value is inserted into stringtable.
+
+The following special escapes are converted before being stored:
+
+    \n
+    \t
+    \b
+    \f
+
+For other escaped characters, the escaped character itself is stored.
+Therefore, for example, the textual sequence \0 is valid and produces
+the character '0'. It is different from an actual NUL byte.
+
+A backslash followed by a physical newline is accepted. The newline is
+stored in the string value and curr_lineno is incremented.
+
+An unescaped physical newline terminates the invalid string and returns:
+
+    Unterminated string constant
+
+EOF before the closing quote returns:
+
+    EOF in string constant
+
+COOL strings are limited to 1024 characters. The implementation reserves
+one additional byte for the terminating C NUL character. A value longer
+than 1024 characters returns:
+
+    String constant too long
+
+An actual NUL byte inside a string returns:
+
+    String contains null character
+
+
+String error recovery
+---------------------
+
+A separate exclusive Flex state, STRING_RECOVERY, is used after errors
+such as an oversized string or a string containing a NUL byte.
+
+After the ERROR token has been returned, the scanner continues consuming
+the invalid string until its logical end. Escaped quotes do not
+prematurely terminate recovery, escaped physical newlines update
+curr_lineno, and an ordinary physical newline terminates the invalid
+string.
+
+This prevents the remaining contents of an invalid string from being
+incorrectly interpreted as normal COOL tokens.
+
+If EOF is reached during recovery, no second lexical error is generated,
+because the original string error has already been reported.
+
+
+Rule ordering
+-------------
+
+The scanner relies on Flex longest-match behavior together with explicit
+rule ordering.
+
+Multi-character operators are recognized before their single-character
+components. Keywords and boolean constants have explicit rules, while
+the more general identifier rules ensure that longer identifiers such
+as classx, whilex and trueValue are not split into shorter tokens.
+
+The final rule in the INITIAL state reports an otherwise unrecognized
+character as an ERROR token containing that character and allows
+scanning to continue at the following character.
+
+
+Line counting
+-------------
+
+curr_lineno is incremented whenever a physical newline is consumed in a
+context in which that newline belongs to the input stream, including:
+
+- normal source text;
+- block comments;
+- escaped physical newlines in valid strings;
+- physical newlines encountered during string recovery;
+- unterminated strings terminated by an unescaped newline.
+
+
+Testing
+-------
+
+The supplied test.cl was expanded to exercise representative cases from
+all major lexical categories, including:
+
+- keywords and capitalization;
+- boolean constants;
+- TYPEID and OBJECTID;
+- integer constants;
+- operators and punctuation;
+- longest-match boundaries;
+- line comments;
+- nested block comments;
+- valid strings;
+- escape sequences;
+- escaped physical newlines;
+- invalid characters;
+- unmatched comment terminators;
+- unterminated strings;
+- interactions between strings, comments and normal tokens.
+
+Additional development tests were kept in the tests/ directory to cover
+cases that cannot conveniently coexist in one test.cl or require binary
+input. These include:
+
+- EOF inside strings;
+- EOF inside block comments;
+- EOF inside nested comments;
+- strings of exactly 1024 characters;
+- strings exceeding 1024 characters;
+- actual NUL bytes inside strings;
+- recovery after string errors;
+- escaped quotes during recovery;
+- escaped newlines during recovery;
+- EOF during recovery;
+- integration of Core, Comments and Strings.
+
+Regression testing was performed after implementing each lexical area
+and again after integration. The complete scanner was also tested with
+mixed valid input and with multiple recoverable errors in the same file.
+
+
+Correctness
+-----------
+
+The scanner was validated against the required token classes, semantic
+values, lexical error messages, recovery rules and line-number behavior.
+
+In particular, tests confirmed that:
+
+- comments do not produce tokens;
+- comment delimiters inside strings remain part of the string;
+- quotes and token-like text inside comments are ignored;
+- invalid characters generate one ERROR and scanning continues;
+- nested block comments are handled correctly;
+- string errors do not cause their remaining contents to be tokenized;
+- valid input following recoverable lexical errors is still recognized;
+- special identifiers such as self and SELF_TYPE receive no special
+  lexical treatment beyond the normal OBJECTID/TYPEID rules;
+- the scanner does not perform integer-overflow checking.
