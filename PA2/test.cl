@@ -1,97 +1,204 @@
-(* models one-dimensional cellular automaton on a circle of finite radius
-   arrays are faked as Strings,
-   X's respresent live cells, dots represent dead cells,
-   no error checking is done *)
-class CellularAutomaton inherits IO {
-    population_map : String;
-   
-    init(map : String) : SELF_TYPE {
-        {
-            population_map <- map;
-            self;
-        }
-    };
-   
-    print() : SELF_TYPE {
-        {
-            out_string(population_map.concat("\n"));
-            self;
-        }
-    };
-   
-    num_cells() : Int {
-        population_map.length()
-    };
-   
-    cell(position : Int) : String {
-        population_map.substr(position, 1)
-    };
-   
-    cell_left_neighbor(position : Int) : String {
-        if position = 0 then
-            cell(num_cells() - 1)
-        else
-            cell(position - 1)
-        fi
-    };
-   
-    cell_right_neighbor(position : Int) : String {
-        if position = num_cells() - 1 then
-            cell(0)
-        else
-            cell(position + 1)
-        fi
-    };
-   
-    (* a cell will live if exactly 1 of itself and it's immediate
-       neighbors are alive *)
-    cell_at_next_evolution(position : Int) : String {
-        if (if cell(position) = "X" then 1 else 0 fi
-            + if cell_left_neighbor(position) = "X" then 1 else 0 fi
-            + if cell_right_neighbor(position) = "X" then 1 else 0 fi
-            = 1)
-        then
-            "X"
-        else
-            '.'
-        fi
-    };
-   
-    evolve() : SELF_TYPE {
-        (let position : Int in
-        (let num : Int <- num_cells[] in
-        (let temp : String in
-            {
-                while position < num loop
-                    {
-                        temp <- temp.concat(cell_at_next_evolution(position));
-                        position <- position + 1;
-                    }
-                pool;
-                population_map <- temp;
-                self;
-            }
-        ) ) )
-    };
-};
+(*
+ * COOL Lexer Test File
+ *
+ * Representative tests for:
+ * - keywords and case-insensitivity
+ * - boolean constants
+ * - TYPEID and OBJECTID
+ * - integer constants
+ * - operators and punctuation
+ * - whitespace and line counting
+ * - line and nested block comments
+ * - string constants and escapes
+ * - recoverable lexical errors
+ *
+ * Additional edge cases such as EOF inside strings/comments,
+ * real NUL bytes and exact string-length boundaries are tested
+ * separately in tests/.
+ *)
 
-class Main {
-    cells : CellularAutomaton;
-   
+
+-- ============================================================
+-- Keywords
+-- ============================================================
+
+class else fi if in inherits isvoid let loop pool then while
+case esac new of not
+
+CLASS Else FI If IN InHeRiTs IsVoId LET Loop Pool Then WHILE
+Case ESAC New OF Not
+
+
+-- ============================================================
+-- Boolean constants
+-- ============================================================
+
+true
+false
+tRuE
+fAlSe
+
+-- These are identifiers, not BOOL_CONST, because the first
+-- character is uppercase.
+True
+FALSE
+
+
+-- ============================================================
+-- Identifiers
+-- ============================================================
+
+Object
+Int
+Bool
+String
+SELF_TYPE
+
+Main
+MyClass
+Type_123
+
+self
+main
+my_variable
+object123
+
+
+-- ============================================================
+-- Integer constants
+-- ============================================================
+
+0
+1
+007
+123
+999999
+
+-- No overflow checking is performed by the scanner.
+1234567890123456789012345678901234567890
+
+
+-- ============================================================
+-- Operators and punctuation
+-- ============================================================
+
+<- <= =>
+
++ - * / ~ <
+= ( ) { } ; : , . @
+
+
+-- ============================================================
+-- Longest-match / token boundaries
+-- ============================================================
+
+class classy Class ClassName
+true trueValue false false_1
+classx ifx whilex newer notebook
+
+
+-- ============================================================
+-- Line comments
+-- ============================================================
+
+-- Everything here must be ignored: class Main "string" (* comment *)
+
+class Main
+
+
+-- ============================================================
+-- Nested block comments
+-- ============================================================
+
+(*
+   Outer block comment.
+
+   class Fake {
+       text : String <- "not a real string";
+   };
+
+   (* nested block comment
+      (* nested again *)
+   *)
+
+   -- still inside the block comment
+*)
+
+Main
+
+
+-- ============================================================
+-- String constants
+-- ============================================================
+
+""
+"a"
+"hello"
+"hello world"
+"123 !? @"
+
+"class -- (* not a comment *) true <- <= =>"
+
+"quote: \""
+"backslash: \\"
+"zero textual escape: \0"
+"generic escape: \x"
+
+"tab:\tend"
+"newline:\nend"
+"backspace:\bend"
+"formfeed:\fend"
+
+
+-- ============================================================
+-- Escaped physical newline
+-- ============================================================
+
+"line one\
+line two"
+
+Main
+
+
+-- ============================================================
+-- Recoverable errors
+-- ============================================================
+
+-- Invalid character: scanner must return ERROR and continue.
+#
+main
+
+-- Unmatched block-comment terminator.
+*)
+Main
+
+-- Physical unescaped newline inside string.
+"unterminated
+Main
+
+
+-- ============================================================
+-- Interaction between constructs
+-- ============================================================
+
+class Integration {
+    text : String <- "class -- (* still string *)";
+
+    -- "not a string"
+    value : Int <- 123;
+
+    (* comment containing:
+       "fake string"
+       -- fake line comment
+       (* nested comment *)
+    *)
+
+    flag : Bool <- true;
+
+    message : String <- "first line\
+second line";
+
     main() : SELF_TYPE {
-        {
-            cells <- (new CellularAutomaton).init("         X         ");
-            cells.print();
-            (let countdown : Int <- 20 in
-                while countdown > 0 loop
-                    {
-                        cells.evolve();
-                        cells.print();
-                        countdown <- countdown - 1;
-                    
-                pool
-            );  (* end let countdown
-            self;
-        }
+        self
     };
 };
