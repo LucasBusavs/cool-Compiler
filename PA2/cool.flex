@@ -49,6 +49,11 @@ extern YYSTYPE cool_yylval;
  */
 char invalid_char_error[2];
 
+/*
+ * Current nesting depth of block comments.
+ */
+int comment_depth = 0;
+
 %}
 
 /*
@@ -95,12 +100,73 @@ WHITESPACE      [ \t\f\r\v]+
 /* One-character tokens */
 SIMPLE_TOKEN    [-+*/~<={}();:,.@]
 
+/*
+ * Exclusive state used while scanning block comments.
+ */
+%x COMMENT
+
 %%
 
  /*
   *  Nested comments
   */
 
+ /*
+  * Line comments.
+  *
+  * The newline is intentionally left for the normal NEWLINE rule,
+  * which is responsible for updating curr_lineno.
+  */
+
+"--"[^\n]* {
+        /* Ignore line comment contents. */
+}
+
+
+ /*
+  * Block comments.
+  */
+
+"(*" {
+        comment_depth = 1;
+        BEGIN(COMMENT);
+}
+
+<COMMENT>"(*" {
+        comment_depth++;
+}
+
+<COMMENT>"*)" {
+        comment_depth--;
+
+        if (comment_depth == 0) {
+                BEGIN(INITIAL);
+        }
+}
+
+<COMMENT>\n {
+        curr_lineno++;
+}
+
+<COMMENT><<EOF>> {
+        BEGIN(INITIAL);
+        cool_yylval.error_msg = (char *)"EOF in comment";
+        return (ERROR);
+}
+
+<COMMENT>. {
+        /* Ignore ordinary characters inside a block comment. */
+}
+
+
+ /*
+  * Unmatched block-comment terminator.
+  */
+
+"*)" {
+        cool_yylval.error_msg = (char *)"Unmatched *)";
+        return (ERROR);
+}
 
  /*
   *  The multiple-character operators.
