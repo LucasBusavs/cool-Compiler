@@ -61,6 +61,16 @@ exit
 
 ## Testes
 
+Na raiz do projeto, passe o arquivo que deseja testar, sem precisar entrar no container:
+
+```bash
+docker compose run --rm cool ./scripts/test.sh tests/codes/teste-lexico.cl
+```
+
+Os caminhos relativos são resolvidos a partir do diretório de execução no container
+(`/workspace` por padrão, que corresponde à raiz do projeto). Para caminhos com
+espaços, use aspas. Sem argumento, o script executa `PA2/test.cl`:
+
 ```bash
 docker compose run --rm cool ./scripts/test.sh
 ```
