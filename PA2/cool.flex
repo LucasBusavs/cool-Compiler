@@ -54,6 +54,20 @@ char invalid_char_error[2];
  */
 int comment_depth = 0;
 
+/*
+ * Appends one character while preserving space for the final '\0'.
+ * COOL strings may contain at most 1024 characters.
+ */
+static bool append_string_char(char c)
+{
+        if (string_buf_ptr - string_buf >= MAX_STR_CONST - 1) {
+                return false;
+        }
+
+        *string_buf_ptr++ = c;
+        return true;
+}
+
 %}
 
 /*
@@ -104,6 +118,8 @@ SIMPLE_TOKEN    [-+*/~<={}();:,.@]
  * Exclusive state used while scanning block comments.
  */
 %x COMMENT
+%x STRING
+%x STRING_RECOVERY
 
 %%
 
@@ -250,6 +266,207 @@ SIMPLE_TOKEN    [-+*/~<={}();:,.@]
   *  \n \t \b \f, the result is c.
   *
   */
+
+ /*
+  * Begin a string constant.
+  */
+
+\" {
+        string_buf_ptr = string_buf;
+        BEGIN(STRING);
+}
+
+
+ /*
+  * End a valid string constant.
+  */
+
+<STRING>\" {
+        *string_buf_ptr = '\0';
+
+        cool_yylval.symbol = stringtable.add_string(string_buf);
+
+        BEGIN(INITIAL);
+
+        return (STR_CONST);
+}
+
+
+ /*
+  * Ordinary characters inside a string.
+  *
+  * Escapes, newlines and error cases will be implemented separately.
+  */
+
+ /*
+  * Standard escape sequences.
+  */
+
+ /*
+  * Escaped physical newline.
+  *
+  * A backslash followed by an actual newline keeps the string open.
+  * The newline becomes part of the string value.
+  */
+
+<STRING>\\\n {
+        curr_lineno++;
+
+        if (!append_string_char('\n')) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+<STRING>\\b {
+        if (!append_string_char('\b')) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+<STRING>\\t {
+        if (!append_string_char('\t')) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+<STRING>\\n {
+        if (!append_string_char('\n')) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+<STRING>\\f {
+        if (!append_string_char('\f')) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+ /*
+  * Generic escape.
+  *
+  * Any escaped character other than b, t, n and f evaluates
+  * to the character itself.
+  */
+
+ /*
+  * A real NUL byte is invalid inside a string.
+  * This is different from the textual escape \0.
+  */
+
+<STRING>\\\x00 {
+        BEGIN(STRING_RECOVERY);
+        cool_yylval.error_msg =
+                (char *)"String contains null character";
+        return (ERROR);
+}
+
+<STRING>\x00 {
+        BEGIN(STRING_RECOVERY);
+        cool_yylval.error_msg =
+                (char *)"String contains null character";
+        return (ERROR);
+}
+
+<STRING>\\. {
+        if (!append_string_char(yytext[1])) {
+                BEGIN(STRING_RECOVERY);
+                cool_yylval.error_msg =
+                        (char *)"String constant too long";
+                return (ERROR);
+        }
+}
+
+<STRING>[^"\\\n\x00]+ {
+        for (int i = 0; i < (int)yyleng; i++) {
+                if (!append_string_char(yytext[i])) {
+                        BEGIN(STRING_RECOVERY);
+                        cool_yylval.error_msg =
+                                (char *)"String constant too long";
+                        return (ERROR);
+                }
+        }
+}
+
+ /*
+  * Unescaped physical newline.
+  *
+  * This terminates the invalid string and resumes scanning
+  * at the beginning of the next source line.
+  */
+
+<STRING>\n {
+        curr_lineno++;
+
+        BEGIN(INITIAL);
+
+        cool_yylval.error_msg = (char *)"Unterminated string constant";
+
+        return (ERROR);
+}
+
+ /*
+  * EOF reached before the closing quote.
+  */
+
+<STRING><<EOF>> {
+        BEGIN(INITIAL);
+
+        cool_yylval.error_msg = (char *)"EOF in string constant";
+
+        return (ERROR);
+}
+
+ /*
+  * Recovery after an invalid string.
+  *
+  * The original error has already been returned. From this point on,
+  * consume the remaining contents until the logical end of the string.
+  */
+
+<STRING_RECOVERY>\\\n {
+        curr_lineno++;
+}
+
+<STRING_RECOVERY>\\. {
+        /* Ignore escaped character. */
+}
+
+<STRING_RECOVERY>\" {
+        BEGIN(INITIAL);
+}
+
+<STRING_RECOVERY>\n {
+        curr_lineno++;
+        BEGIN(INITIAL);
+}
+
+<STRING_RECOVERY>\x00 {
+        /* Ignore additional NUL bytes during recovery. */
+}
+
+<STRING_RECOVERY><<EOF>> {
+        BEGIN(INITIAL);
+        return 0;
+}
+
+<STRING_RECOVERY>. {
+        /* Ignore remaining characters of the invalid string. */
+}
 
  /*
   * Line counting and whitespace.

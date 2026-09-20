@@ -1,0 +1,8 @@
+"quote: \""
+"backslash: \\"
+"zero: \0"
+"generic: \x"
+"tab:\tend"
+"newline:\nend"
+"backspace:\bend"
+"formfeed:\fend"
