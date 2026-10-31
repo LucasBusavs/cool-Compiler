@@ -25,3 +25,12 @@ PA2/cool-lex.cc
 PA2/*.o
 PA2/*.d
 PA2/core
+
+# PA3 - arquivos gerados
+PA3/parser
+PA3/cool-parse.cc
+PA3/cool-parse.h
+PA3/cool.tab.c
+PA3/cool.tab.h
+PA3/*.d
+PA3/*.output
