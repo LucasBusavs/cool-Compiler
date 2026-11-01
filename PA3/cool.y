@@ -83,10 +83,15 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expression> expression
 
 /* Precedence declarations go here. */
+
 /* Operator precedence: lowest to highest */
+%right ASSIGN
+%right NOT
 %nonassoc '<' LE '='
 %left '+' '-'
 %left '*' '/'
+%right ISVOID
+%right '~'
 
 
 %%
@@ -198,6 +203,20 @@ expression
     /* Parenthesized expression */
     | '(' expression ')'
         { $$ = $2; }
+
+    /* Assignment */
+    | OBJECTID ASSIGN expression
+        { $$ = assign($1, $3); }
+
+    /* Unary operators */
+    | '~' expression
+        { $$ = neg($2); }
+
+    | NOT expression
+        { $$ = comp($2); }
+
+    | ISVOID expression
+        { $$ = isvoid($2); }
     ;
 
 

@@ -73,3 +73,36 @@ class OperatorTest {
         3 < 5
     };
 };
+
+class UnaryAssignTest {
+    x : Int;
+    y : Int;
+
+    assignSimple() : Int {
+        x <- 10
+    };
+
+    assignChain() : Int {
+        x <- y <- 10
+    };
+
+    unaryNeg() : Int {
+        ~5
+    };
+
+    logicalNot() : Bool {
+        not true
+    };
+
+    checkVoid() : Bool {
+        isvoid x
+    };
+
+    negPrecedence() : Int {
+        ~2 * 3
+    };
+
+    notPrecedence() : Bool {
+        not 2 < 3
+    };
+};
