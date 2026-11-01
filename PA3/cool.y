@@ -81,6 +81,7 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <formals> formal_list formal_seq
 %type <formal> formal_decl
 %type <expression> expression
+%type <expressions> block_expr_list
 
 /* Precedence declarations go here. */
 
@@ -162,6 +163,15 @@ formal_decl
     ;
 
 
+/* Non-empty list of block expressions */
+block_expr_list
+    : expression ';'
+        { $$ = single_Expressions($1); }
+
+    | block_expr_list expression ';'
+        { $$ = append_Expressions($1, single_Expressions($2)); }
+    ;
+
 
 /* Basic expressions and binary operators */
 expression
@@ -225,6 +235,10 @@ expression
     /* While loop */
     | WHILE expression LOOP expression POOL
         { $$ = loop($2, $4); }
+
+    /* Block expression */
+    | '{' block_expr_list '}'
+        { $$ = block($2); }
     ;
 
 

@@ -140,3 +140,56 @@ class ControlFlowTest {
         pool
     };
 };
+
+class BlockTest {
+    x : Int;
+    y : Int;
+
+    singleBlock() : Int {
+        {
+            42;
+        }
+    };
+
+    multipleBlock() : Int {
+        {
+            x <- 10;
+            y <- 20;
+            x + y;
+        }
+    };
+
+    nestedBlock() : Int {
+        {
+            x <- 1;
+            {
+                y <- 2;
+                x + y;
+            };
+            x + y;
+        }
+    };
+
+    blockInIf() : Int {
+        if true then
+            {
+                x <- 10;
+                x + 1;
+            }
+        else
+            {
+                x <- 20;
+                x + 2;
+            }
+        fi
+    };
+
+    blockInWhile() : Object {
+        while x < 10 loop
+            {
+                x <- x + 1;
+                x;
+            }
+        pool
+    };
+};
