@@ -23,3 +23,22 @@ class MethodTest {
         a
     };
 };
+
+
+class LiteralTest {
+    getTrue() : Bool {
+        true
+    };
+
+    getFalse() : Bool {
+        false
+    };
+
+    getText() : String {
+        "Hello"
+    };
+
+    getEscaped() : String {
+        "Line1\nLine2"
+    };
+};

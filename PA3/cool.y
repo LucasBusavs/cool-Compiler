@@ -152,16 +152,20 @@ formal_decl
     ;
 
 
-
-/* Initial expressions */
+/* Basic expressions: integers, booleans, strings and identifiers */
 expression
     : INT_CONST
         { $$ = int_const($1); }
 
+    | BOOL_CONST
+        { $$ = bool_const($1); }
+
+    | STR_CONST
+        { $$ = string_const($1); }
+
     | OBJECTID
         { $$ = object($1); }
     ;
-
 
 
 /* end of grammar */
