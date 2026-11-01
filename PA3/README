@@ -142,3 +142,86 @@ Instructions
 
 Write-up for PA3
 ----------------
+
+
+Implementation Overview
+-----------------------
+
+The COOL parser was implemented using GNU Bison in cool.y.
+
+The grammar recognizes class declarations, inheritance, attributes,
+methods, formal parameters, arithmetic and comparison expressions,
+assignments, control-flow expressions, method dispatch, object creation,
+let expressions, case expressions, and blocks.
+
+Semantic actions construct the COOL abstract syntax tree (AST) using
+the constructors provided by the assignment framework.
+
+Design Decisions
+----------------
+
+Operator precedence and associativity were explicitly declared to
+resolve ambiguities and preserve the intended interpretation of COOL
+expressions.
+
+Lists of classes, features, formals, arguments, block expressions,
+and case branches are constructed using the corresponding AST list
+constructors.
+
+Multiple let declarations are represented as nested let expressions,
+preserving their original declaration order and scope.
+
+Source line tracking uses Bison locations and the node_lineno
+mechanism. Missing initialization expressions are represented by
+no_expr() nodes with line number zero, matching the reference parser.
+
+Syntax Error Recovery
+---------------------
+
+Error recovery productions were implemented for:
+
+- Class declarations
+- Class features (attributes and methods)
+- Let declarations
+- Block expressions
+
+These productions use Bison's error token and synchronization
+delimiters to continue parsing after syntax errors.
+
+Previously recognized AST elements are preserved where appropriate.
+Invalid programs are rejected after their errors have been reported.
+
+Testing and Validation
+----------------------
+
+good.cl contains valid COOL programs covering the implemented
+language constructs, including nested expressions, operator
+precedence, dispatch, let declarations, and case expressions.
+
+bad.cl contains invalid programs covering malformed classes,
+attributes, methods, let declarations, and block expressions.
+
+Additional isolated recovery tests were used during development.
+
+The complete AST generated for good.cl was compared with the
+official COOL parser using diff. Both outputs were identical.
+
+The error diagnostics generated for the isolated recovery tests
+were also identical to those of the official parser.
+
+The consolidated bad.cl produced the same 13 diagnostics reported
+by the official parser, with one additional EOF diagnostic caused
+by an intentionally incomplete final class.
+
+Bison conflict reports were checked during development, and the
+final grammar produced no reported parsing conflicts in the tests.
+
+Conclusion
+----------
+
+The implemented parser successfully recognizes the tested valid
+COOL constructions, generates the expected AST, and provides
+syntax error recovery for the tested invalid constructions.
+
+Comparisons against the official parser support the correctness
+of the implementation for the supplied test cases.
