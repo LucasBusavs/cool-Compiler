@@ -310,3 +310,36 @@ class NewInitTest {
         new NewInitTest
     };
 };
+
+class LetTest {
+
+    noInit() : Int {
+        let x : Int in x
+    };
+
+    simpleInit() : Int {
+        let x : Int <- 10 in x
+    };
+
+    multipleInit() : Int {
+        let x : Int <- 10,
+            y : Int <- x + 5
+        in x + y
+    };
+
+    mixedInit() : Int {
+        let x : Int,
+            y : Int <- 20
+        in y
+    };
+
+    nestedLet() : Int {
+        let x : Int <- 3 in
+            let y : Int <- 4 in
+                x * y
+    };
+
+    bodyPrecedence() : Int {
+        let x : Int <- 2 in x + 3 * 4
+    };
+};

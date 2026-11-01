@@ -81,12 +81,14 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <formals> formal_list formal_seq
 %type <formal> formal_decl
 %type <expression> expression
+%type <expression> let_binding_chain
 %type <expressions> block_expr_list
 %type <expressions> argument_list argument_seq
 
 /* Precedence declarations go here. */
 
 /* Operator precedence: lowest to highest */
+%right LET
 %right ASSIGN
 %right NOT
 %nonassoc '<' LE '='
@@ -196,6 +198,21 @@ argument_seq
         { $$ = append_Expressions($1, single_Expressions($3)); }
     ;
 
+/* Let bindings: each declaration becomes a nested let expression */
+let_binding_chain
+    : OBJECTID ':' TYPEID IN expression %prec LET
+        { $$ = let($1, $3, no_expr(), $5); }
+
+    | OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET
+        { $$ = let($1, $3, $5, $7); }
+
+    | OBJECTID ':' TYPEID ',' let_binding_chain
+        { $$ = let($1, $3, no_expr(), $5); }
+
+    | OBJECTID ':' TYPEID ASSIGN expression ',' let_binding_chain
+        { $$ = let($1, $3, $5, $7); }
+    ;
+
 /* Basic expressions and binary operators */
 expression
     : NEW TYPEID
@@ -277,8 +294,11 @@ expression
     /* Static method dispatch */
     | expression '@' TYPEID '.' OBJECTID '(' argument_list ')' %prec '@'
         { $$ = static_dispatch($1, $3, $5, $7); }
-    ;
 
+    /* Let expression */
+    | LET let_binding_chain
+        { $$ = $2; }
+    ;
 
 /* end of grammar */
 %%
