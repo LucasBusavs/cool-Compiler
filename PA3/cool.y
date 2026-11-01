@@ -108,14 +108,36 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 program	: class_list	{ ast_root = program($1); }
         ;
 
+/* Class list with syntax error recovery */
 class_list
-	: class			/* single class */
-		{ $$ = single_Classes($1);
-                  parse_results = $$; }
-	| class_list class	/* several classes */
-		{ $$ = append_Classes($1,single_Classes($2)); 
-                  parse_results = $$; }
-	;
+    : class
+        {
+            $$ = single_Classes($1);
+            parse_results = $$;
+        }
+
+    | class_list class
+        {
+            $$ = append_Classes($1, single_Classes($2));
+            parse_results = $$;
+        }
+
+    /* Recovery when the first class is malformed */
+    | error '}' ';'
+        {
+            $$ = nil_Classes();
+            parse_results = $$;
+            yyerrok;
+        }
+
+    /* Recovery after an earlier class */
+    | class_list error '}' ';'
+        {
+            $$ = $1;
+            parse_results = $$;
+            yyerrok;
+        }
+    ;
 
 /* If no parent is specified, the class inherits from the Object class. */
 class	: CLASS TYPEID '{' feature_list '}' ';'
