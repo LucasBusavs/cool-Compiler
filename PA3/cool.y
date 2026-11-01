@@ -241,6 +241,13 @@ let_binding_chain
 
     | OBJECTID ':' TYPEID ASSIGN expression ',' let_binding_chain
         { $$ = let($1, $3, $5, $7); }
+
+    /* Recover from a malformed let declaration */
+    | error IN expression %prec LET
+        {
+            $$ = $3;
+            yyerrok;
+        }
     ;
 
 /* Case branches: at least one branch is required */
