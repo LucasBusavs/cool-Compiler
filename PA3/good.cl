@@ -288,3 +288,25 @@ class StaticDispatchTest inherits ExplicitDispatchTest {
         (if true then self else self fi)@ExplicitDispatchTest.sum(2, 3)
     };
 };
+
+class NewInitTest {
+    number : Int <- 10;
+    flag : Bool <- true;
+    message : String <- "Hello";
+
+    result : Int <- 2 + 3 * 4;
+
+    instance : NewInitTest <- new NewInitTest;
+
+    makeObject() : Object {
+        new Object
+    };
+
+    makeSelf() : SELF_TYPE {
+        new SELF_TYPE
+    };
+
+    makeInstance() : NewInitTest {
+        new NewInitTest
+    };
+};

@@ -136,10 +136,14 @@ feature
     : OBJECTID ':' TYPEID ';'
         { $$ = attr($1, $3, no_expr()); }
 
+    /* Attribute with initialization */
+    | OBJECTID ':' TYPEID ASSIGN expression ';'
+        { $$ = attr($1, $3, $5); }
+
+    /* Method declaration */
     | OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
         { $$ = method($1, $3, $6, $8); }
     ;
-
 
 
 /* Formal parameters */
@@ -194,7 +198,10 @@ argument_seq
 
 /* Basic expressions and binary operators */
 expression
-    : INT_CONST
+    : NEW TYPEID
+        { $$ = new_($2); }
+
+    | INT_CONST
         { $$ = int_const($1); }
 
     | BOOL_CONST
