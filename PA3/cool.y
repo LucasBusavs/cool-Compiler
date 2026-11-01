@@ -84,6 +84,8 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expression> let_binding_chain
 %type <expressions> block_expr_list
 %type <expressions> argument_list argument_seq
+%type <cases> case_list
+%type <case_> case_branch
 
 /* Precedence declarations go here. */
 
@@ -213,6 +215,21 @@ let_binding_chain
         { $$ = let($1, $3, $5, $7); }
     ;
 
+/* Case branches: at least one branch is required */
+case_list
+    : case_branch
+        { $$ = single_Cases($1); }
+
+    | case_list case_branch
+        { $$ = append_Cases($1, single_Cases($2)); }
+    ;
+
+/* Individual case branch */
+case_branch
+    : OBJECTID ':' TYPEID DARROW expression ';'
+        { $$ = branch($1, $3, $5); }
+    ;
+
 /* Basic expressions and binary operators */
 expression
     : NEW TYPEID
@@ -298,6 +315,10 @@ expression
     /* Let expression */
     | LET let_binding_chain
         { $$ = $2; }
+
+    /* Case expression */
+    | CASE expression OF case_list ESAC
+        { $$ = typcase($2, $4); }
     ;
 
 /* end of grammar */

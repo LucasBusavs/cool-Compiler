@@ -343,3 +343,36 @@ class LetTest {
         let x : Int <- 2 in x + 3 * 4
     };
 };
+
+class CaseTest {
+    value : Int <- 7;
+
+    oneBranch() : Int {
+        case value of
+            n : Int => n + 1;
+        esac
+    };
+
+    multipleBranches() : Int {
+        case value of
+            n : Int => n + 1;
+            s : String => 0;
+            o : Object => 9;
+        esac
+    };
+
+    complexExpression() : Int {
+        case (if true then 5 else 8 fi) of
+            n : Int => n * 2;
+        esac
+    };
+
+    nestedCase() : Int {
+        case value of
+            a : Int =>
+                case a of
+                    b : Int => b + 1;
+                esac;
+        esac
+    };
+};
