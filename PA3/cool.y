@@ -11,7 +11,21 @@ using std::endl;
 #include "stringtab.h"
 #include "utilities.h"
 
-int curr_lineno = 1;
+/* Source line tracking for AST nodes */
+#define YYLTYPE int
+#define cool_yylloc curr_lineno
+
+extern int curr_lineno;
+extern int node_lineno;
+
+#define YYLLOC_DEFAULT(Current, Rhs, N) \
+    do { \
+        (Current) = (N) > 0 ? (Rhs)[1] : (Rhs)[0]; \
+        node_lineno = (Current); \
+    } while (0)
+
+#define SET_NODELOC(Current) \
+    do { node_lineno = (Current); } while (0)
 
 extern char *curr_filename;
 
@@ -86,6 +100,7 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expressions> argument_list argument_seq
 %type <cases> case_list
 %type <case_> case_branch
+%locations
 
 /* Precedence declarations go here. */
 
