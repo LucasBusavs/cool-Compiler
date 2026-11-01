@@ -193,3 +193,98 @@ class BlockTest {
         pool
     };
 };
+
+class DispatchTest {
+    sum(a : Int, b : Int) : Int {
+        a + b
+    };
+
+    zero() : Int {
+        0
+    };
+
+    identity(x : Int) : Int {
+        x
+    };
+
+    callZero() : Int {
+        zero()
+    };
+
+    callOne() : Int {
+        identity(7)
+    };
+
+    callMany() : Int {
+        sum(2, 3)
+    };
+
+    callExpression() : Int {
+        sum(1 + 2, 3 * 4)
+    };
+
+    callNested() : Int {
+        sum(identity(5), sum(2, 3))
+    };
+};
+
+class ExplicitDispatchTest {
+    zero() : Int {
+        0
+    };
+
+    identity(x : Int) : Int {
+        x
+    };
+
+    sum(a : Int, b : Int) : Int {
+        a + b
+    };
+
+    getSelf() : SELF_TYPE {
+        self
+    };
+
+    callEmpty() : Int {
+        self.zero()
+    };
+
+    callOne() : Int {
+        self.identity(7)
+    };
+
+    callOther(other : ExplicitDispatchTest) : Int {
+        other.sum(2, 3)
+    };
+
+    callChain() : Int {
+        self.getSelf().identity(5)
+    };
+
+    callExpression() : Int {
+        (if true then self else self fi).sum(1 + 2, 3 * 4)
+    };
+};
+
+class StaticDispatchTest inherits ExplicitDispatchTest {
+
+    staticNoArgs() : String {
+        self@Object.type_name()
+    };
+
+    staticWithArgs() : Int {
+        self@ExplicitDispatchTest.sum(2, 3)
+    };
+
+    staticWithExpressions() : Int {
+        self@ExplicitDispatchTest.sum(1 + 2, 3 * 4)
+    };
+
+    staticChain() : Int {
+        self@ExplicitDispatchTest.getSelf().identity(5)
+    };
+
+    staticComplexReceiver() : Int {
+        (if true then self else self fi)@ExplicitDispatchTest.sum(2, 3)
+    };
+};

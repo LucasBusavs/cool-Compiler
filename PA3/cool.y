@@ -82,6 +82,7 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <formal> formal_decl
 %type <expression> expression
 %type <expressions> block_expr_list
+%type <expressions> argument_list argument_seq
 
 /* Precedence declarations go here. */
 
@@ -93,7 +94,8 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %left '*' '/'
 %right ISVOID
 %right '~'
-
+%left '@'
+%left '.'
 
 %%
 /* 
@@ -173,6 +175,23 @@ block_expr_list
     ;
 
 
+/* Method call arguments */
+argument_list
+    : /* empty */
+        { $$ = nil_Expressions(); }
+
+    | argument_seq
+        { $$ = $1; }
+    ;
+
+argument_seq
+    : expression
+        { $$ = single_Expressions($1); }
+
+    | argument_seq ',' expression
+        { $$ = append_Expressions($1, single_Expressions($3)); }
+    ;
+
 /* Basic expressions and binary operators */
 expression
     : INT_CONST
@@ -239,6 +258,18 @@ expression
     /* Block expression */
     | '{' block_expr_list '}'
         { $$ = block($2); }
+
+    /* Implicit method dispatch */
+    | OBJECTID '(' argument_list ')'
+        { $$ = dispatch(object(idtable.add_string("self")), $1, $3); }
+
+    /* Explicit method dispatch */
+    | expression '.' OBJECTID '(' argument_list ')' %prec '.'
+        { $$ = dispatch($1, $3, $5); }
+
+    /* Static method dispatch */
+    | expression '@' TYPEID '.' OBJECTID '(' argument_list ')' %prec '@'
+        { $$ = static_dispatch($1, $3, $5, $7); }
     ;
 
 
