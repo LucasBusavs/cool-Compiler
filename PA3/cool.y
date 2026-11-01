@@ -77,6 +77,9 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 /* Class features */
 %type <features> feature_list
 %type <feature> feature
+%type <formals> formal_list formal_seq
+%type <formal> formal_decl
+%type <expression> expression
 
 /* Precedence declarations go here. */
 
@@ -114,11 +117,51 @@ feature_list
         { $$ = append_Features($1, single_Features($2)); }
     ;
 
-/* Attribute without initialization */
+
+/* Class attributes and methods */
 feature
     : OBJECTID ':' TYPEID ';'
         { $$ = attr($1, $3, no_expr()); }
+
+    | OBJECTID '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
+        { $$ = method($1, $3, $6, $8); }
     ;
+
+
+
+/* Formal parameters */
+formal_list
+    : /* empty */
+        { $$ = nil_Formals(); }
+
+    | formal_seq
+        { $$ = $1; }
+    ;
+
+formal_seq
+    : formal_decl
+        { $$ = single_Formals($1); }
+
+    | formal_seq ',' formal_decl
+        { $$ = append_Formals($1, single_Formals($3)); }
+    ;
+
+formal_decl
+    : OBJECTID ':' TYPEID
+        { $$ = formal($1, $3); }
+    ;
+
+
+
+/* Initial expressions */
+expression
+    : INT_CONST
+        { $$ = int_const($1); }
+
+    | OBJECTID
+        { $$ = object($1); }
+    ;
+
 
 
 /* end of grammar */
