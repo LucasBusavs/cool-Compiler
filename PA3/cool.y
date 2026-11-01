@@ -147,15 +147,21 @@ class	: CLASS TYPEID '{' feature_list '}' ';'
 		{ $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
 	;
 
-/* List of class features */
+/* List of class features with syntax error recovery */
 feature_list
     : /* empty */
         { $$ = nil_Features(); }
 
     | feature_list feature
         { $$ = append_Features($1, single_Features($2)); }
-    ;
 
+    /* Recover from a malformed feature */
+    | feature_list error ';'
+        {
+            $$ = $1;
+            yyerrok;
+        }
+    ;
 
 /* Class attributes and methods */
 feature
