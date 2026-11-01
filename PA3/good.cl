@@ -106,3 +106,37 @@ class UnaryAssignTest {
         not 2 < 3
     };
 };
+
+class ControlFlowTest {
+    x : Int;
+
+    simpleIf(flag : Bool) : Int {
+        if flag then 10 else 20 fi
+    };
+
+    comparisonIf() : Int {
+        if 2 < 3 then 1 else 0 fi
+    };
+
+    nestedIf() : Int {
+        if true then
+            if false then 1 else 2 fi
+        else
+            3
+        fi
+    };
+
+    simpleWhile() : Object {
+        while x < 10 loop x <- x + 1 pool
+    };
+
+    nestedWhile() : Object {
+        while x < 10 loop
+            if x < 5 then
+                x <- x + 1
+            else
+                x <- x + 2
+            fi
+        pool
+    };
+};

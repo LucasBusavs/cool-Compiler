@@ -217,6 +217,14 @@ expression
 
     | ISVOID expression
         { $$ = isvoid($2); }
+
+    /* Conditional expression */
+    | IF expression THEN expression ELSE expression FI
+        { $$ = cond($2, $4, $6); }
+
+    /* While loop */
+    | WHILE expression LOOP expression POOL
+        { $$ = loop($2, $4); }
     ;
 
 
