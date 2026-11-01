@@ -10,6 +10,13 @@
 "bad.cl", line 81: syntax error at or near ';'
 "bad.cl", line 89: syntax error at or near ';'
 "bad.cl", line 98: syntax error at or near ';'
-"bad.cl", line 115: syntax error at or near ';'
-"bad.cl", line 115: syntax error at or near EOF
+"bad.cl", line 116: syntax error at or near ASSIGN
+"bad.cl", line 118: syntax error at or near ASSIGN
+"bad.cl", line 124: syntax error at or near ASSIGN
+"bad.cl", line 124: syntax error at or near ASSIGN
+"bad.cl", line 129: syntax error at or near '}'
+"bad.cl", line 133: syntax error at or near '}'
+"bad.cl", line 137: syntax error at or near '}'
+"bad.cl", line 147: syntax error at or near ';'
+"bad.cl", line 147: syntax error at or near EOF
 Compilation halted due to lex and parse errors

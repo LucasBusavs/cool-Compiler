@@ -110,6 +110,38 @@ class BlockRecoveryTest {
     };
 };
 
+(* Recovery at commas must retain later bindings and report both errors. *)
+class ExtraRecoveryTest {
+    badLet() : Int {
+        let x : <- 1,
+            y : Int <- 2,
+            z : <- 3
+        in y
+    };
+
+    (* Consecutive malformed bindings must each produce a diagnostic. *)
+    consecutiveBadBindings() : Int {
+        let x : <- 1, y : <- 2, z : Int <- 3 in z
+    };
+
+    (* Missing semicolon: synchronize at the closing block brace. *)
+    badBlock() : Object {
+        { 1 + }
+    };
+
+    badBlockAfterValidExpression() : Object {
+        { 1; 2 + }
+    };
+
+    nestedBadBlock() : Object {
+        { { 1 + }; 2; }
+    };
+
+    validAfter() : Int { 42 };
+};
+
+class AfterRecovery {};
+
 (* error: closing brace is missing *)
 Class E inherits A {
 ;

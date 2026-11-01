@@ -285,7 +285,11 @@ let_binding_chain
     | OBJECTID ':' TYPEID ASSIGN expression ',' let_binding_chain
         { $$ = let($1, $3, $5, $7); }
 
-    /* Recover from a malformed let declaration */
+    /* Skip only the malformed declaration, preserving later bindings. */
+    | error ',' { yyerrok; } let_binding_chain
+        { $$ = $4; }
+
+    /* Recover when the final declaration is malformed. */
     | error IN expression %prec LET
         {
             $$ = $3;
@@ -377,6 +381,19 @@ expression
     /* Block expression */
     | '{' block_expr_list '}'
         { $$ = block($2); }
+
+    /* A missing semicolon must not consume the following feature/class. */
+    | '{' error '}'
+        {
+            $$ = no_expr();
+            yyerrok;
+        }
+
+    | '{' block_expr_list error '}'
+        {
+            $$ = block($2);
+            yyerrok;
+        }
 
     /* Implicit method dispatch */
     | OBJECTID '(' argument_list ')'

@@ -182,14 +182,20 @@ Error recovery productions were implemented for:
 
 - Class declarations
 - Class features (attributes and methods)
-- Let declarations
-- Block expressions
+- Let declarations, synchronizing at commas to retain subsequent bindings
+  and at IN for an invalid final binding
+- Block expressions, synchronizing at semicolons or the closing brace
 
 These productions use Bison's error token and synchronization
 delimiters to continue parsing after syntax errors.
 
 Previously recognized AST elements are preserved where appropriate.
 Invalid programs are rejected after their errors have been reported.
+Recovery at a let comma resets the error status before parsing the next
+binding so consecutive invalid bindings each receive a diagnostic.
+A malformed block recovered at its closing brace keeps earlier valid
+expressions when available, or uses no_expr() as a placeholder. Recovery
+placeholders are never emitted as a successful program AST.
 
 Testing and Validation
 ----------------------
@@ -201,17 +207,46 @@ precedence, dispatch, let declarations, and case expressions.
 bad.cl contains invalid programs covering malformed classes,
 attributes, methods, let declarations, and block expressions.
 
-Additional isolated recovery tests were used during development.
+The parser was built and the test files were run through myparser in the
+configured COOL environment. The captured outputs were inspected:
 
-The complete AST generated for good.cl was compared with the
-official COOL parser using diff. Both outputs were identical.
+- good.output contains one _program root and all 15 classes, without
+  syntax errors. It is identical to the previously versioned output.
+- bad.output contains 21 syntax diagnostics and the expected final
+  "Compilation halted due to lex and parse errors" message.
+- The diagnostics include both invalid bindings in the same let,
+  consecutive invalid bindings, and malformed blocks closed without
+  a semicolon, including a nested block. Parsing continues to the final
+  intentionally incomplete class.
 
-The error diagnostics generated for the isolated recovery tests
-were also identical to those of the official parser.
+These checks confirm the observed behavior of the supplied tests.
+A fresh comparison against the official reference parser has not been
+performed in this verification; equality with a previously saved output
+alone is not evidence of equality with the reference implementation.
 
-The consolidated bad.cl produced the same 13 diagnostics reported
-by the official parser, with one additional EOF diagnostic caused
-by an intentionally incomplete final class.
+To reproduce the tests, enter the configured container from the root:
+
+    docker compose run --rm cool
+
+Then run inside the container:
+
+    cd PA3
+    make parser
+    make dotest
+
+To capture each test output explicitly, run from PA3:
+
+    ./myparser good.cl > good.output 2>&1
+    ./myparser bad.cl > bad.output 2>&1
+
+The negative test is expected to return an error status. Python is not
+required for these commands. PA3/lexer should point to the official
+assignment lexer when validating for submission.
+
+Block comments before each class in good.cl describe its test purpose.
+Comments in bad.cl identify the deliberate errors and recovery cases.
+Regenerate good.output after changing comment layout so AST source line
+numbers match the current input.
 
 Bison conflict reports were checked during development, and the
 final grammar produced no reported parsing conflicts in the tests.
@@ -223,5 +258,5 @@ The implemented parser successfully recognizes the tested valid
 COOL constructions, generates the expected AST, and provides
 syntax error recovery for the tested invalid constructions.
 
-Comparisons against the official parser support the correctness
-of the implementation for the supplied test cases.
+The inspected outputs support the implementation for the supplied test
+cases; they do not guarantee acceptance of every unseen test.

@@ -1,15 +1,19 @@
+(* Empty class with implicit inheritance from Object. *)
 class A {
 };
 
+(* Explicit inheritance and case-insensitive class keyword. *)
 Class BB__ inherits A {
 };
 
+(* Attributes without initialization use no_expr() in the AST. *)
 class AttributeTest {
     counter : Int;
     title : String;
 };
 
 
+(* Methods with zero, one, and multiple formal parameters. *)
 class MethodTest {
     getValue() : Int {
         42
@@ -25,6 +29,7 @@ class MethodTest {
 };
 
 
+(* Integer, boolean, and string constants, including escaped newlines. *)
 class LiteralTest {
     getTrue() : Bool {
         true
@@ -44,6 +49,7 @@ class LiteralTest {
 };
 
 
+(* Arithmetic precedence, parentheses, left associativity, and comparisons. *)
 class OperatorTest {
     precedence() : Int {
         2 + 3 * 4
@@ -74,6 +80,7 @@ class OperatorTest {
     };
 };
 
+(* Simple and chained assignments; unary operators and their precedence. *)
 class UnaryAssignTest {
     x : Int;
     y : Int;
@@ -107,6 +114,7 @@ class UnaryAssignTest {
     };
 };
 
+(* Simple and nested conditionals and loops. *)
 class ControlFlowTest {
     x : Int;
 
@@ -141,6 +149,7 @@ class ControlFlowTest {
     };
 };
 
+(* Single-expression, multiple-expression, and nested blocks in control flow. *)
 class BlockTest {
     x : Int;
     y : Int;
@@ -194,6 +203,7 @@ class BlockTest {
     };
 };
 
+(* Implicit dispatch with empty, multiple, and nested arguments. *)
 class DispatchTest {
     sum(a : Int, b : Int) : Int {
         a + b
@@ -228,6 +238,7 @@ class DispatchTest {
     };
 };
 
+(* Explicit dispatch with chained calls and compound receivers. *)
 class ExplicitDispatchTest {
     zero() : Int {
         0
@@ -266,6 +277,7 @@ class ExplicitDispatchTest {
     };
 };
 
+(* Static dispatch with arguments, chained calls, and compound receivers. *)
 class StaticDispatchTest inherits ExplicitDispatchTest {
 
     staticNoArgs() : String {
@@ -289,6 +301,7 @@ class StaticDispatchTest inherits ExplicitDispatchTest {
     };
 };
 
+(* Initialized attributes and object creation, including SELF_TYPE. *)
 class NewInitTest {
     number : Int <- 10;
     flag : Bool <- true;
@@ -311,6 +324,7 @@ class NewInitTest {
     };
 };
 
+(* Let bindings with optional initialization, nesting, and body precedence. *)
 class LetTest {
 
     noInit() : Int {
@@ -344,6 +358,7 @@ class LetTest {
     };
 };
 
+(* Case expressions with one or multiple branches and nested cases. *)
 class CaseTest {
     value : Int <- 7;
 
