@@ -181,7 +181,13 @@ feature_list
 /* Class attributes and methods */
 feature
     : OBJECTID ':' TYPEID ';'
-        { $$ = attr($1, $3, no_expr()); }
+    {
+        SET_NODELOC(0);
+        Expression empty_init = no_expr();
+        SET_NODELOC(@1);
+        $$ = attr($1, $3, empty_init);
+    }
+
 
     /* Attribute with initialization */
     | OBJECTID ':' TYPEID ASSIGN expression ';'
@@ -258,13 +264,23 @@ argument_seq
 /* Let bindings: each declaration becomes a nested let expression */
 let_binding_chain
     : OBJECTID ':' TYPEID IN expression %prec LET
-        { $$ = let($1, $3, no_expr(), $5); }
+        {
+            SET_NODELOC(0);
+            Expression empty_init = no_expr();
+            SET_NODELOC(@1);
+            $$ = let($1, $3, empty_init, $5);
+        }
 
     | OBJECTID ':' TYPEID ASSIGN expression IN expression %prec LET
         { $$ = let($1, $3, $5, $7); }
 
     | OBJECTID ':' TYPEID ',' let_binding_chain
-        { $$ = let($1, $3, no_expr(), $5); }
+        {
+            SET_NODELOC(0);
+            Expression empty_init = no_expr();
+            SET_NODELOC(@1);
+            $$ = let($1, $3, empty_init, $5);
+        }
 
     | OBJECTID ':' TYPEID ASSIGN expression ',' let_binding_chain
         { $$ = let($1, $3, $5, $7); }
