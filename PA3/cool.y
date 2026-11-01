@@ -200,16 +200,28 @@ formal_decl
         { $$ = formal($1, $3); }
     ;
 
-
-/* Non-empty list of block expressions */
+/* Non-empty list of block expressions with error recovery */
 block_expr_list
     : expression ';'
         { $$ = single_Expressions($1); }
 
     | block_expr_list expression ';'
         { $$ = append_Expressions($1, single_Expressions($2)); }
-    ;
 
+    /* Recover when the first expression is malformed */
+    | error ';'
+        {
+            $$ = nil_Expressions();
+            yyerrok;
+        }
+
+    /* Recover after previous expressions */
+    | block_expr_list error ';'
+        {
+            $$ = $1;
+            yyerrok;
+        }
+    ;
 
 /* Method call arguments */
 argument_list
