@@ -42,3 +42,34 @@ class LiteralTest {
         "Line1\nLine2"
     };
 };
+
+
+class OperatorTest {
+    precedence() : Int {
+        2 + 3 * 4
+    };
+
+    parentheses() : Int {
+        (2 + 3) * 4
+    };
+
+    leftAssoc() : Int {
+        10 - 4 - 2
+    };
+
+    division() : Int {
+        20 / 2 / 2
+    };
+
+    comparison() : Bool {
+        2 + 3 <= 10
+    };
+
+    equality() : Bool {
+        5 = 5
+    };
+
+    lessThan() : Bool {
+        3 < 5
+    };
+};

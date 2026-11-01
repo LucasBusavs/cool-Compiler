@@ -5,7 +5,8 @@
  */
 %{
 #include <iostream>
-using namespace std;
+using std::cerr;
+using std::endl;
 #include "cool-tree.h"
 #include "stringtab.h"
 #include "utilities.h"
@@ -82,6 +83,10 @@ int omerrs = 0;               /* number of errors in lexing and parsing */
 %type <expression> expression
 
 /* Precedence declarations go here. */
+/* Operator precedence: lowest to highest */
+%nonassoc '<' LE '='
+%left '+' '-'
+%left '*' '/'
 
 
 %%
@@ -152,7 +157,8 @@ formal_decl
     ;
 
 
-/* Basic expressions: integers, booleans, strings and identifiers */
+
+/* Basic expressions and binary operators */
 expression
     : INT_CONST
         { $$ = int_const($1); }
@@ -165,6 +171,33 @@ expression
 
     | OBJECTID
         { $$ = object($1); }
+
+    /* Arithmetic operators */
+    | expression '+' expression
+        { $$ = plus($1, $3); }
+
+    | expression '-' expression
+        { $$ = sub($1, $3); }
+
+    | expression '*' expression
+        { $$ = mul($1, $3); }
+
+    | expression '/' expression
+        { $$ = divide($1, $3); }
+
+    /* Comparison operators */
+    | expression '<' expression
+        { $$ = lt($1, $3); }
+
+    | expression LE expression
+        { $$ = leq($1, $3); }
+
+    | expression '=' expression
+        { $$ = eq($1, $3); }
+
+    /* Parenthesized expression */
+    | '(' expression ')'
+        { $$ = $2; }
     ;
 
 
