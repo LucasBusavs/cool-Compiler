@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include "semant.h"
 #include "utilities.h"
+#include <set>
 
 using std::cerr;
 using std::endl;
@@ -89,8 +90,113 @@ static void initialize_constants(void)
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
 
-    /* Fill this in */
+    install_basic_classes();
 
+    // Register user-defined classes.
+    for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // SELF_TYPE cannot be used as a class name.
+        if (class_name == SELF_TYPE) {
+            semant_error(current_class)
+                << "SELF_TYPE cannot be used as a class name." << endl;
+            continue;
+        }
+
+        // Reject duplicate class definitions.
+        if (class_map.find(class_name) != class_map.end()) {
+            semant_error(current_class)
+                << "Class " << class_name
+                << " was previously defined." << endl;
+            continue;
+        }
+
+        class_map[class_name] = current_class;
+    }
+    // Validate parent classes after registering all user classes.
+    for (int i = classes->first(); classes->more(i); i = classes->next(i)) {
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+        Symbol parent_name = current_class->get_parent();
+
+        // Skip invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator it = class_map.find(class_name);
+        if (it == class_map.end() || it->second != current_class) {
+            continue;
+        }
+
+        // Basic types and SELF_TYPE cannot be inherited.
+        if (parent_name == Int || parent_name == Bool ||
+            parent_name == Str || parent_name == SELF_TYPE) {
+            semant_error(current_class)
+                << "Class " << class_name
+                << " cannot inherit class " << parent_name
+                << "." << endl;
+            continue;
+        }
+
+        // The parent class must exist.
+        if (class_map.find(parent_name) == class_map.end()) {
+            semant_error(current_class)
+                << "Class " << class_name
+                << " inherits from an undefined class "
+                << parent_name << "." << endl;
+        }
+    }
+    // Detect cycles in the inheritance graph.
+    std::set<Symbol> checked;
+
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ start_class = classes->nth(i);
+        Symbol start_name = start_class->get_name();
+
+        // Ignore invalid or duplicate declarations.
+        std::map<Symbol, Class_>::iterator start_it =
+            class_map.find(start_name);
+
+        if (start_it == class_map.end() ||
+            start_it->second != start_class) {
+            continue;
+        }
+
+        std::set<Symbol> path;
+        Symbol current = start_name;
+
+        while (true) {
+            if (checked.count(current)) {
+                break;
+            }
+
+            std::map<Symbol, Class_>::iterator it =
+                class_map.find(current);
+
+            if (it == class_map.end()) {
+                break;
+            }
+
+            // Revisiting a class in the current path indicates a cycle.
+            if (!path.insert(current).second) {
+                semant_error(it->second)
+                    << "Class " << current
+                    << " is involved in an inheritance cycle."
+                    << endl;
+                break;
+            }
+
+            Symbol parent = it->second->get_parent();
+
+            if (parent == No_class) {
+                break;
+            }
+
+            current = parent;
+        }
+
+        checked.insert(path.begin(), path.end());
+    }
 }
 
 void ClassTable::install_basic_classes() {
@@ -192,6 +298,12 @@ void ClassTable::install_basic_classes() {
 						      Str, 
 						      no_expr()))),
 	       filename);
+    // Register the basic COOL classes.
+    class_map[Object] = Object_class;
+    class_map[IO] = IO_class;
+    class_map[Int] = Int_class;
+    class_map[Bool] = Bool_class;
+    class_map[Str] = Str_class;
 }
 
 ////////////////////////////////////////////////////////////////////

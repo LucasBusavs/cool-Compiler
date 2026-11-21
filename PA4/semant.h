@@ -7,6 +7,7 @@
 #include "stringtab.h"
 #include "symtab.h"
 #include "list.h"
+#include <map>
 
 using std::ostream;
 
@@ -23,10 +24,10 @@ typedef ClassTable *ClassTableP;
 
 class ClassTable {
 private:
+  std::map<Symbol, Class_> class_map;
   int semant_errors;
   void install_basic_classes();
   ostream& error_stream;
-
 public:
   ClassTable(Classes);
   int errors() { return semant_errors; }
