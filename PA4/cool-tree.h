@@ -53,6 +53,8 @@ class Feature_class : public tree_node {
 public:
    tree_node *copy()		 { return copy_Feature(); }
    virtual Feature copy_Feature() = 0;
+   virtual Symbol get_name() = 0;
+   virtual bool is_method() = 0;
 
 #ifdef Feature_EXTRAS
    Feature_EXTRAS
@@ -192,6 +194,12 @@ public:
       return_type = a3;
       expr = a4;
    }
+   Symbol get_name() { return name; }
+   bool is_method() { return true; }
+
+   Formals get_formals() { return formals; }
+   Symbol get_return_type() { return return_type; }
+   Expression get_expr() { return expr; }
    Feature copy_Feature();
    void dump(ostream& stream, int n);
 
@@ -216,6 +224,11 @@ public:
       type_decl = a2;
       init = a3;
    }
+   Symbol get_name() { return name; }
+   bool is_method() { return false; }
+
+   Symbol get_type_decl() { return type_decl; }
+   Expression get_init() { return init; }
    Feature copy_Feature();
    void dump(ostream& stream, int n);
 
@@ -238,6 +251,8 @@ public:
       name = a1;
       type_decl = a2;
    }
+   Symbol get_name() { return name; }
+   Symbol get_type_decl() { return type_decl; }
    Formal copy_Formal();
    void dump(ostream& stream, int n);
 

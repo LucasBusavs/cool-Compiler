@@ -25,6 +25,9 @@ typedef ClassTable *ClassTableP;
 class ClassTable {
 private:
   std::map<Symbol, Class_> class_map;
+
+  std::map<Symbol, std::map<Symbol, Feature> > class_attributes;
+  std::map<Symbol, std::map<Symbol, Feature> > class_methods;
   int semant_errors;
   void install_basic_classes();
   ostream& error_stream;

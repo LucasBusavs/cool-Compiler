@@ -86,7 +86,40 @@ static void initialize_constants(void)
     val         = idtable.add_string("_val");
 }
 
+static bool same_method_signature(Feature child, Feature parent) {
+    method_class* child_method = static_cast<method_class*>(child);
+    method_class* parent_method = static_cast<method_class*>(parent);
 
+    if (child_method->get_return_type() !=
+        parent_method->get_return_type()) {
+        return false;
+    }
+
+    Formals child_formals = child_method->get_formals();
+    Formals parent_formals = parent_method->get_formals();
+
+    if (child_formals->len() != parent_formals->len()) {
+        return false;
+    }
+
+    for (int i = child_formals->first();
+        child_formals->more(i);
+        i = child_formals->next(i)) {
+
+        formal_class* child_formal =
+            static_cast<formal_class*>(child_formals->nth(i));
+
+        formal_class* parent_formal =
+            static_cast<formal_class*>(parent_formals->nth(i));
+
+        if (child_formal->get_type_decl() !=
+            parent_formal->get_type_decl()) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
 
@@ -196,6 +229,169 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
         }
 
         checked.insert(path.begin(), path.end());
+    }
+    // Collect attributes and methods declared in each class.
+    for (std::map<Symbol, Class_>::iterator it = class_map.begin();
+         it != class_map.end(); ++it) {
+
+        Symbol class_name = it->first;
+        Class_ current_class = it->second;
+        Features features = current_class->get_features();
+
+        for (int i = features->first(); features->more(i);
+             i = features->next(i)) {
+
+            Feature feature = features->nth(i);
+            Symbol feature_name = feature->get_name();
+
+            if (feature->is_method()) {
+                // Detect methods declared more than once.
+                if (class_methods[class_name].count(feature_name)) {
+                    semant_error(current_class->get_filename(), feature)
+                        << "Method " << feature_name
+                        << " is multiply defined in class "
+                        << class_name << "." << endl;
+                    continue;
+                }
+
+                class_methods[class_name][feature_name] = feature;
+
+            } else {
+                // Detect attributes declared more than once.
+                if (class_attributes[class_name].count(feature_name)) {
+                    semant_error(current_class->get_filename(), feature)
+                        << "Attribute " << feature_name
+                        << " is multiply defined in class "
+                        << class_name << "." << endl;
+                    continue;
+                }
+
+                class_attributes[class_name][feature_name] = feature;
+            }
+        }
+    }
+    // Check attributes inherited from ancestor classes.
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // Ignore invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator class_it =
+            class_map.find(class_name);
+
+        if (class_it == class_map.end() ||
+            class_it->second != current_class) {
+            continue;
+        }
+
+        std::map<Symbol, Feature>& attributes =
+            class_attributes[class_name];
+
+        for (std::map<Symbol, Feature>::iterator attr_it =
+                 attributes.begin();
+             attr_it != attributes.end(); ++attr_it) {
+
+            Symbol attr_name = attr_it->first;
+            Symbol parent = current_class->get_parent();
+            std::set<Symbol> visited;
+
+            while (parent != No_class &&
+                   visited.insert(parent).second) {
+
+                std::map<Symbol, Class_>::iterator parent_it =
+                    class_map.find(parent);
+
+                if (parent_it == class_map.end()) {
+                    break;
+                }
+
+                std::map<Symbol, std::map<Symbol, Feature> >::iterator
+                    attrs_it = class_attributes.find(parent);
+
+                if (attrs_it != class_attributes.end() &&
+                    attrs_it->second.count(attr_name)) {
+
+                    semant_error(current_class->get_filename(),
+                                 attr_it->second)
+                        << "Attribute " << attr_name
+                        << " is an attribute of an inherited class."
+                        << endl;
+                    break;
+                }
+
+                parent = parent_it->second->get_parent();
+            }
+        }
+    }
+    // Validate overridden methods against inherited declarations.
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // Ignore invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator class_it =
+            class_map.find(class_name);
+
+        if (class_it == class_map.end() ||
+            class_it->second != current_class) {
+            continue;
+        }
+
+        std::map<Symbol, Feature>& methods =
+            class_methods[class_name];
+
+        for (std::map<Symbol, Feature>::iterator method_it =
+                 methods.begin();
+             method_it != methods.end(); ++method_it) {
+
+            Symbol method_name = method_it->first;
+            Feature current_method = method_it->second;
+
+            Symbol parent = current_class->get_parent();
+            std::set<Symbol> visited;
+
+            while (parent != No_class &&
+                   visited.insert(parent).second) {
+
+                std::map<Symbol, Class_>::iterator parent_it =
+                    class_map.find(parent);
+
+                if (parent_it == class_map.end()) {
+                    break;
+                }
+
+                std::map<Symbol, std::map<Symbol, Feature> >::iterator
+                    methods_it = class_methods.find(parent);
+
+                if (methods_it != class_methods.end()) {
+                    std::map<Symbol, Feature>::iterator inherited_it =
+                        methods_it->second.find(method_name);
+
+                    if (inherited_it != methods_it->second.end()) {
+
+                        if (!same_method_signature(
+                                current_method, inherited_it->second)) {
+
+                            semant_error(
+                                current_class->get_filename(),
+                                current_method)
+                                << "Method " << method_name
+                                << " is redefined with an incompatible signature."
+                                << endl;
+                        }
+
+                        // Compare with the nearest inherited declaration.
+                        break;
+                    }
+                }
+
+                parent = parent_it->second->get_parent();
+            }
+        }
     }
 }
 
