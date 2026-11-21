@@ -393,6 +393,148 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
             }
         }
     }
+    // Validate declared attribute types.
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // Skip invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator class_it =
+            class_map.find(class_name);
+
+        if (class_it == class_map.end() ||
+            class_it->second != current_class) {
+            continue;
+        }
+
+        std::map<Symbol, Feature>& attributes =
+            class_attributes[class_name];
+
+        for (std::map<Symbol, Feature>::iterator it =
+                 attributes.begin();
+             it != attributes.end(); ++it) {
+
+            attr_class* attribute =
+                static_cast<attr_class*>(it->second);
+
+            Symbol declared_type = attribute->get_type_decl();
+
+            if (declared_type != SELF_TYPE &&
+                class_map.find(declared_type) == class_map.end()) {
+
+                semant_error(current_class->get_filename(), attribute)
+                    << "Class " << declared_type
+                    << " of attribute " << it->first
+                    << " is undefined." << endl;
+            }
+        }
+    }
+    // Validate declared method return types.
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // Skip invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator class_it =
+            class_map.find(class_name);
+
+        if (class_it == class_map.end() ||
+            class_it->second != current_class) {
+            continue;
+        }
+
+        std::map<Symbol, Feature>& methods =
+            class_methods[class_name];
+
+        for (std::map<Symbol, Feature>::iterator it =
+                 methods.begin();
+             it != methods.end(); ++it) {
+
+            method_class* method_node =
+                static_cast<method_class*>(it->second);
+
+            Symbol return_type = method_node->get_return_type();
+
+            if (return_type != SELF_TYPE &&
+                class_map.find(return_type) == class_map.end()) {
+
+                semant_error(current_class->get_filename(), method_node)
+                    << "Undefined return type " << return_type
+                    << " in method " << it->first << "." << endl;
+            }
+        }
+    }
+    // Validate formal parameters of user-defined methods.
+    for (int i = classes->first(); classes->more(i);
+         i = classes->next(i)) {
+
+        Class_ current_class = classes->nth(i);
+        Symbol class_name = current_class->get_name();
+
+        // Skip invalid or duplicate class declarations.
+        std::map<Symbol, Class_>::iterator class_it =
+            class_map.find(class_name);
+
+        if (class_it == class_map.end() ||
+            class_it->second != current_class) {
+            continue;
+        }
+
+        std::map<Symbol, Feature>& methods =
+            class_methods[class_name];
+
+        for (std::map<Symbol, Feature>::iterator method_it =
+                 methods.begin();
+             method_it != methods.end(); ++method_it) {
+
+            method_class* method_node =
+                static_cast<method_class*>(method_it->second);
+
+            Formals formals = method_node->get_formals();
+            std::set<Symbol> declared_names;
+
+            for (int j = formals->first(); formals->more(j);
+                 j = formals->next(j)) {
+
+                formal_class* formal_node =
+                    static_cast<formal_class*>(formals->nth(j));
+
+                Symbol formal_name = formal_node->get_name();
+                Symbol formal_type = formal_node->get_type_decl();
+
+                // The identifier self cannot be a formal parameter.
+                if (formal_name == self) {
+                    semant_error(current_class->get_filename(), formal_node)
+                        << "'self' cannot be the name of a formal parameter."
+                        << endl;
+                }
+
+                // Formal parameter names must be unique.
+                if (!declared_names.insert(formal_name).second) {
+                    semant_error(current_class->get_filename(), formal_node)
+                        << "Formal parameter " << formal_name
+                        << " is multiply defined." << endl;
+                }
+
+                // SELF_TYPE is not allowed as a formal parameter type.
+                if (formal_type == SELF_TYPE) {
+                    semant_error(current_class->get_filename(), formal_node)
+                        << "Formal parameter " << formal_name
+                        << " cannot have type SELF_TYPE." << endl;
+                }
+                else if (class_map.find(formal_type) == class_map.end()) {
+                    semant_error(current_class->get_filename(), formal_node)
+                        << "Class " << formal_type
+                        << " of formal parameter " << formal_name
+                        << " is undefined." << endl;
+                }
+            }
+        }
+    }
 }
 
 void ClassTable::install_basic_classes() {
