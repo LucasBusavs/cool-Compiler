@@ -34,3 +34,29 @@ PA3/cool.tab.c
 PA3/cool.tab.h
 PA3/*.d
 PA3/*.output
+# PA4 - dependencias e links fornecidos pelo ambiente COOL
+PA4/Makefile
+PA4/ast-lex.cc
+PA4/ast-parse.cc
+PA4/cool-tree.aps
+PA4/cool-tree.cc
+PA4/dumptype.cc
+PA4/handle_flags.cc
+PA4/semant-phase.cc
+PA4/stringtab.cc
+PA4/symtab_example.cc
+PA4/tree.cc
+PA4/utilities.cc
+
+# PA4 - executaveis e artefatos de compilacao
+PA4/lexer
+PA4/parser
+PA4/cgen
+PA4/mycoolc
+PA4/mysemant
+PA4/semant
+PA4/symtab_example
+PA4/core
+PA4/*.d
+PA4/*.o
+PA4/*.s

@@ -37,6 +37,37 @@ public:
   ostream& semant_error();
   ostream& semant_error(Class_ c);
   ostream& semant_error(Symbol filename, tree_node *t);
+
+  void populate_object_environment(
+    Symbol class_name,
+    SymbolTable<Symbol, Symbol>& env
+  );
+
+  bool conforms(
+    Symbol actual_type,
+    Symbol expected_type,
+    Symbol current_class
+  );
+
+  bool is_defined_type(Symbol type);
+
+  bool has_main_class();
+
+  bool has_main_method();
+
+  bool main_method_has_no_parameters();
+
+  Feature lookup_method(
+    Symbol receiver_type,
+    Symbol method_name,
+    Symbol current_class
+  );
+
+  Symbol least_upper_bound(
+    Symbol first_type,
+    Symbol second_type,
+    Symbol current_class
+  );
 };
 
 

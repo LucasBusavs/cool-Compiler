@@ -228,6 +228,7 @@ public:
    bool is_method() { return false; }
 
    Symbol get_type_decl() { return type_decl; }
+   Symbol* get_type_decl_ptr() { return &type_decl; }
    Expression get_init() { return init; }
    Feature copy_Feature();
    void dump(ostream& stream, int n);
@@ -253,6 +254,7 @@ public:
    }
    Symbol get_name() { return name; }
    Symbol get_type_decl() { return type_decl; }
+   Symbol* get_type_decl_ptr() { return &type_decl; }
    Formal copy_Formal();
    void dump(ostream& stream, int n);
 
@@ -277,6 +279,10 @@ public:
       type_decl = a2;
       expr = a3;
    }
+   Symbol get_name() { return name; }
+   Symbol get_type_decl() { return type_decl; }
+   Expression get_expr() { return expr; }
+   Symbol* get_type_decl_ptr() { return &type_decl; }
    Case copy_Case();
    void dump(ostream& stream, int n);
 
@@ -299,6 +305,8 @@ public:
       name = a1;
       expr = a2;
    }
+   Symbol get_name() { return name; }
+   Expression get_expr() { return expr; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -325,6 +333,10 @@ public:
       name = a3;
       actual = a4;
    }
+   Expression get_expr() { return expr; }
+   Symbol get_type_name() { return type_name; }
+   Symbol get_name() { return name; }
+   Expressions get_actual() { return actual; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -349,6 +361,9 @@ public:
       name = a2;
       actual = a3;
    }
+   Expression get_expr() { return expr; }
+   Symbol get_name() { return name; }
+   Expressions get_actual() { return actual; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -373,6 +388,9 @@ public:
       then_exp = a2;
       else_exp = a3;
    }
+   Expression get_pred() { return pred; }
+   Expression get_then_exp() { return then_exp; }
+   Expression get_else_exp() { return else_exp; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -395,6 +413,8 @@ public:
       pred = a1;
       body = a2;
    }
+   Expression get_pred() { return pred; }
+   Expression get_body() { return body; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -417,6 +437,8 @@ public:
       expr = a1;
       cases = a2;
    }
+   Expression get_expr() { return expr; }
+   Cases get_cases() { return cases; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -437,6 +459,7 @@ public:
    block_class(Expressions a1) {
       body = a1;
    }
+   Expressions get_body() { return body; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -463,6 +486,11 @@ public:
       init = a3;
       body = a4;
    }
+   Symbol get_identifier() { return identifier; }
+   Symbol get_type_decl() { return type_decl; }
+   Expression get_init() { return init; }
+   Expression get_body() { return body; }
+   Symbol* get_type_decl_ptr() { return &type_decl; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -485,6 +513,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -507,6 +537,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -529,6 +561,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -551,6 +585,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -571,6 +607,7 @@ public:
    neg_class(Expression a1) {
       e1 = a1;
    }
+   Expression get_expr() { return e1; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -593,6 +630,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -615,6 +654,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -637,6 +678,8 @@ public:
       e1 = a1;
       e2 = a2;
    }
+   Expression get_e1() { return e1; }
+   Expression get_e2() { return e2; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -657,6 +700,7 @@ public:
    comp_class(Expression a1) {
       e1 = a1;
    }
+   Expression get_expr() { return e1; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -737,6 +781,7 @@ public:
    new__class(Symbol a1) {
       type_name = a1;
    }
+   Symbol get_type_name() { return type_name; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -757,6 +802,7 @@ public:
    isvoid_class(Expression a1) {
       e1 = a1;
    }
+   Expression get_expr() { return e1; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
@@ -795,6 +841,7 @@ public:
    object_class(Symbol a1) {
       name = a1;
    }
+   Symbol get_name() { return name; }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 

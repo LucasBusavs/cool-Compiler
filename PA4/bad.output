@@ -1,0 +1,15 @@
+bad.cl:20: In call of method init, type Int of parameter 2 does not conform to declared type Bool.
+bad.cl:23: Method init called with wrong number of arguments.
+bad.cl:26: Dispatch to undefined method missing.
+bad.cl:29: Undeclared identifier unknown.
+bad.cl:32: Non-Int arguments to +: Int + Bool.
+bad.cl:35: Argument of 'not' has type Int instead of Bool.
+bad.cl:38: Argument of '~' has type Bool instead of Int.
+bad.cl:41: Predicate of if does not have type Bool.
+bad.cl:44: Predicate of while does not have type Bool.
+bad.cl:47: Inferred type String of initialization of n does not conform to declared type Int.
+bad.cl:52: Duplicate branch type Int in case expression.
+bad.cl:56: Expression type C does not conform to declared static dispatch type IO.
+bad.cl:59: 'new' used with undefined class MissingType.
+bad.cl:62: Cannot assign to 'self'.
+Compilation halted due to static semantic errors.
